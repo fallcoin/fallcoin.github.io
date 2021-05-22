@@ -258,7 +258,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2021/05/22/%E8%B0%88%E8%B0%88%E5%BC%82%E6%AD%A5/" itemprop="url">谈谈异步</a></h1>
+                <a class="post-title-link" href="/2021/05/22/%E8%B0%88%E8%B0%88%E5%BC%82%E6%AD%A5/" itemprop="url">关于进程与线程</a></h1>
         
 
         <div class="post-meta">
@@ -310,7 +310,7 @@
       
         
           
-            <h2 id="谈谈异步"><a href="#谈谈异步" class="headerlink" title="谈谈异步"></a>谈谈异步</h2><h3 id="进程和线程"><a href="#进程和线程" class="headerlink" title="进程和线程"></a>进程和线程</h3><p><strong>进程是什么？</strong></p>
+            <h2 id="关于进程与线程"><a href="#关于进程与线程" class="headerlink" title="关于进程与线程"></a>关于进程与线程</h2><h3 id="进程和线程的认知"><a href="#进程和线程的认知" class="headerlink" title="进程和线程的认知"></a>进程和线程的认知</h3><p><strong>进程是什么？</strong></p>
 <ul>
 <li>进程是程序的<strong>一次执行</strong></li>
 <li>进程是<strong>一个程序及其数据</strong>在处理机上顺序执行时所发生的活动。（<strong>进程并不是源程序</strong>）</li>
@@ -342,7 +342,7 @@
 <li>线程不能拥有资源，线程间共享进程的资源</li>
 </ul>
 <h3 id="JS单线程的应用"><a href="#JS单线程的应用" class="headerlink" title="JS单线程的应用"></a>JS单线程的应用</h3><p>我们都知道Javascript是一门单线程的语言，而单线程会带来几个问题。单线程意味着同一时间只能做一件事，如果有多个任务等待执行，那这些任务就需要进行排队，做完前一个任务才会去做后一个任务。</p>
-<p>但是排队很多时候并不是由于CPU的运行效率，而是因为某些I/O操作，CPU需要等待I/O的结果再进行下一步的处理，所以这也就意味着很多时候CPU是闲着的。如果采用轮询的方法去判断一个任务是否完成，会导致效率太低，所以为了解决这个问题，采用的一个解决方法是回调。回调的解决方案是，我并不知道这个任务什么时候完成，有可能是1s后也有可能是10s，但不管是什么时候完成，完成后调用我传入的回调函数就行了。</p>
+<p>但是排队很多时候并不是由于CPU的运行效率，而是因为某些I/O操作，CPU需要等待I/O的结果再进行下一步的处理，所以这也就意味着很多时候CPU是闲着的。如果采用轮询的方法去判断一个任务是否完成，会导致效率太低，所以为了解决这个问题，采用的一个解决方法是异步处理。异步处理的解决方案是，我并不知道这个任务什么时候完成，有可能是1s后也有可能是10s，但不管是什么时候完成，完成后调用我传入的回调函数就行了。</p>
 <p>可是如果把所有的逻辑都写在回调里面，会导致回调地狱的出现，使得代码的理解性和可维护性降低：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 例如：</span></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="number">2</span>);</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="number">3</span>);</span><br><span class="line">            <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">                <span class="built_in">console</span>.log(<span class="number">4</span>);</span><br><span class="line">            &#125;, <span class="number">4000</span>);</span><br><span class="line">        &#125;, <span class="number">3000</span>);</span><br><span class="line">    &#125;, <span class="number">2000</span>);</span><br><span class="line">&#125;, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
 
@@ -354,6 +354,26 @@
 
 <p>看起来<code>async/await</code>似乎完全可以替代Promise在业务中的使用，其实不然，使用<code>async/await</code>会导致捕获异常较为困难，只能在外面套一层<code>try/catch</code>进行捕获，而使用Promise可以在每个then节点后使用<code>catch</code>捕获 。</p>
 <h3 id="Node单线程的优势"><a href="#Node单线程的优势" class="headerlink" title="Node单线程的优势"></a>Node单线程的优势</h3><p>首先我们先明确一点，node是单线程并不是单进程，现如今大多数CPU为多核，为了充分利用资源，node提供了<code>child_process</code>和<code>cluster</code>模块实现多进程的管理。</p>
+<p>node在<strong>高并发</strong>的场景下拥有优势，因为它的工作模式是<strong>非阻塞IO模型</strong>，而java，apache这种是<strong>阻塞IO模型</strong>。</p>
+<p><strong>什么是高并发？</strong></p>
+<p>高并发是指在同一个时间点，大量用户访问同一API接口或url地址，在高并发场景下必须保证系统能够同时并行处理很多请求。</p>
+<p>举个例子，就相当于开一家餐厅，高并发就相当于在一段时间内有很多人进来吃饭，为了运作正常需要为每个客人及时提供服务。</p>
+<p><strong>如何解决？</strong></p>
+<ul>
+<li>增加机器数，负载均衡（开分店）</li>
+<li>增加每台机器的CPU数量（雇佣更多的厨师）</li>
+</ul>
+<p><strong>后台任务</strong></p>
+<p>后台任务一般分为两种：</p>
+<ul>
+<li>CPU任务：压缩、解压、加密、解密</li>
+<li>I/O任务：文件操作、网络操作、数据库操作</li>
+</ul>
+<p>模拟成餐厅的话，CPU任务就相当于服务员任务，而I/O任务相当于厨师任务。</p>
+<p><strong>阻塞I/O与非阻塞I/O</strong></p>
+<p>阻塞I/O的工作模式是对于每一个请求，都开启一个线程处理，阻塞时进程分配的CPU资源在等待，当I/O操作结束再结束掉该线程。相当于每来一位顾客，就为他配一名服务员。但是这样有个缺点，在处理I/O请求的时候线程是阻塞的，CPU资源被占用，也就是服务员点完菜就坐那玩手机啥也不干了，等厨子做好了菜再叫服务员端上去。</p>
+<p>而非阻塞I/O的工作模式为对每个请求都进行处理，以回调的方式进行通知。单线程只是针对于主线程，I/O操作底层是多线程调度。相当于只雇佣一名服务员，每接待一位顾客就通知后台的那些厨子，接待完再接待下一个。CPU始终在进行工作，提高了利用率。</p>
+<p>因此<strong>阻塞I/O模型</strong>适用于<strong>CPU任务密集</strong>的场景，<strong>非阻塞I/O模型</strong>适用于<strong>I/O任务密集</strong>的场景。</p>
 
           
         
@@ -866,7 +886,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">tags</span>
                 </a>
               </div>
