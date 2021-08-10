@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JS,操作系统," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="进程和线程的认知进程是什么？  进程是程序的一次执行 进程是一个程序及其数据在处理机上顺序执行时所发生的活动。（进程并不是源程序） 进程是具有独立功能的程序在一个数据集合上运行的过程，它是系统进行资源分配和调度的基本单位  一个程序可能几十KB也有可能好几GB，而要执行一个程序，必须要将其加载到内存，可是要将一个大程序完全加载到内存是不切实际的，因此操作系统所做的只是将要执行的那一段加载到内存。如">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谈谈js中的异步">
+<meta property="og:url" content="https://fallcoin.github.io/2021/05/30/%E8%B0%88%E8%B0%88js%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5/index.html">
+<meta property="og:site_name" content="Fallcoin&#39;s Blog">
+<meta property="og:description" content="进程和线程的认知进程是什么？  进程是程序的一次执行 进程是一个程序及其数据在处理机上顺序执行时所发生的活动。（进程并不是源程序） 进程是具有独立功能的程序在一个数据集合上运行的过程，它是系统进行资源分配和调度的基本单位  一个程序可能几十KB也有可能好几GB，而要执行一个程序，必须要将其加载到内存，可是要将一个大程序完全加载到内存是不切实际的，因此操作系统所做的只是将要执行的那一段加载到内存。如">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-05-30T14:02:44.000Z">
+<meta property="article:modified_time" content="2021-05-30T14:05:41.247Z">
+<meta property="article:author" content="Fallcoin">
+<meta property="article:tag" content="JS">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://fallcoin.github.io/2021/05/30/谈谈js中的异步/"/>
+
+
+
+
+
+  <title>谈谈js中的异步 | Fallcoin's Blog</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Fallcoin's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://fallcoin.github.io/2021/05/30/%E8%B0%88%E8%B0%88js%E4%B8%AD%E7%9A%84%E5%BC%82%E6%AD%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fallcoin's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">谈谈js中的异步</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-05-30T22:02:44+08:00">
+                2021-05-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="进程和线程的认知"><a href="#进程和线程的认知" class="headerlink" title="进程和线程的认知"></a>进程和线程的认知</h2><p><strong>进程是什么？</strong></p>
+<ul>
+<li>进程是程序的<strong>一次执行</strong></li>
+<li>进程是<strong>一个程序及其数据</strong>在处理机上顺序执行时所发生的活动。（<strong>进程并不是源程序</strong>）</li>
+<li>进程是具有独立功能的程序在一个数据集合上运行的过程，它是系统进行<strong>资源分配和调度的基本单位</strong></li>
+</ul>
+<p>一个程序可能几十KB也有可能好几GB，而要执行一个程序，必须要将其加载到内存，可是要将一个大程序完全加载到内存是不切实际的，因此操作系统所做的只是将要执行的那一段加载到内存。如果允许过程中出现了缺页情况（需要执行的代码在外存），则进行程序中断，将需要的代码加载进内存（这里会有页面置换算法）。</p>
+<p>在创建进程时操作系统会为其分配相应的数据结构。（PCB）</p>
+<p><strong>操作系统是如何做到在单CPU的情况下同时允许多个进程的？</strong></p>
+<p>在单CPU的电脑上，操作系统是如何做到边播放音乐边用QQ聊天的？其实这只是看起来操作系统在同时允许很多个进程，就像一段动画是由几百帧的静态画面组成的一样，操作系统内部也有对进程做处理，它让每个进程都有一个时间片获得CPU，当时间片到则切换下一个进程，我们看起来同时运行的结果只不过是时间片很小我们感觉不到而已。（这里涉及到操作系统的调度算法）</p>
+<p><strong>死锁</strong></p>
+<p>进程之间访问全局资源是互斥的，因此会发生死锁。</p>
+<p>死锁产生的原因为这组死锁进程中的每一个进程，都在等待另一个死锁进程所占有的资源。</p>
+<p>死锁的发生有几个必要条件：</p>
+<ul>
+<li><strong>互斥条件</strong>（一次只允许一个进程访问，你要是允许多个进程同时访问那哪来的死锁）</li>
+<li><strong>请求和保持条件</strong>（一个进程本身占用资源并在请求其他资源）</li>
+<li><strong>不可抢占条件</strong>（你要是可以抢占那抢了不就没有死锁问题了）</li>
+<li><strong>循环等待条件</strong>（存在一个进程链，使得每个进程都占用下一个进程所需的至少一个资源，有点类似套娃）</li>
+</ul>
+<p><strong>线程是什么</strong></p>
+<p>线程是一条执行路径，是程序执行时的最小单位，它是进程的一个执行流，是CPU调度和分派的基本单位，一个进程可以由很多个线程组成，线程间共享进程的所有资源，每个线程都有自己的堆栈和局部变量。</p>
+<ul>
+<li>一个线程只能属于一个进程，一个进程可以创建多个线程</li>
+<li>线程的切换开销比进程的切换小</li>
+<li>线程不能拥有资源，线程间共享进程的资源</li>
+</ul>
+<h2 id="JS单线程的应用"><a href="#JS单线程的应用" class="headerlink" title="JS单线程的应用"></a>JS单线程的应用</h2><p>我们都知道Javascript是一门单线程的语言，而单线程会带来几个问题。单线程意味着同一时间只能做一件事，如果有多个任务等待执行，那这些任务就需要进行排队，做完前一个任务才会去做后一个任务。</p>
+<p>但是排队很多时候并不是由于CPU的运行效率，而是因为某些I/O操作，CPU需要等待I/O的结果再进行下一步的处理，所以这也就意味着很多时候CPU是闲着的。如果采用轮询的方法去判断一个任务是否完成，会导致效率太低，所以为了解决这个问题，采用的一个解决方法是异步处理。异步处理的解决方案是，我并不知道这个任务什么时候完成，有可能是1s后也有可能是10s，但不管是什么时候完成，完成后调用我传入的回调函数就行了。</p>
+<p>可是如果把所有的逻辑都写在回调里面，会导致回调地狱的出现，使得代码的理解性和可维护性降低：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 例如：</span></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">1</span>);</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="number">2</span>);</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="number">3</span>);</span><br><span class="line">            <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">                <span class="built_in">console</span>.log(<span class="number">4</span>);</span><br><span class="line">            &#125;, <span class="number">4000</span>);</span><br><span class="line">        &#125;, <span class="number">3000</span>);</span><br><span class="line">    &#125;, <span class="number">2000</span>);</span><br><span class="line">&#125;, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>因此ES6提出了Promise，用于解决这个问题，通过then的链式调用：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        resolve(<span class="number">1</span>)</span><br><span class="line">    &#125;, <span class="number">1000</span>)</span><br><span class="line">&#125;).then(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(val) <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            resolve(<span class="number">2</span>)</span><br><span class="line">        &#125;, <span class="number">2000</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;).then(<span class="function"><span class="params">val</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(val) <span class="comment">// 2</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>Promise虽然解决了回调地狱的问题，但是可读性还是不太好，于是出现了<code>async/await</code>，使得异步代码看起来像同步代码一样</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 1. async/await虽然看起来像是同步代码块，但实际上还是异步的（里面是generator的语法糖，底层还是promise）</span></span><br><span class="line"><span class="comment"> * 2. await 只能在async函数里面使用</span></span><br><span class="line"><span class="comment"> * 3. await 后面接的函数必须返回一个pending状态的promise</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sleep</span>(<span class="params">wait</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            resolve(wait);</span><br><span class="line">        &#125;, wait);</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> res;</span><br><span class="line">    res = <span class="keyword">await</span> sleep(<span class="number">1000</span>);    <span class="comment">// 1000</span></span><br><span class="line">    <span class="built_in">console</span>.log(res);</span><br><span class="line">    res = <span class="keyword">await</span> sleep(<span class="number">2000</span>);    <span class="comment">// 2000</span></span><br><span class="line">    <span class="built_in">console</span>.log(res);</span><br><span class="line">    <span class="keyword">return</span> res; <span class="comment">// 2000</span></span><br><span class="line">&#125;</span><br><span class="line">test()</span><br></pre></td></tr></table></figure>
+
+<p>看起来<code>async/await</code>似乎完全可以替代Promise在业务中的使用，其实不然，使用<code>async/await</code>会导致捕获异常较为困难，只能在外面套一层<code>try/catch</code>进行捕获，而使用Promise可以在每个then节点后使用<code>catch</code>捕获 。</p>
+<h2 id="Node单线程的优势"><a href="#Node单线程的优势" class="headerlink" title="Node单线程的优势"></a>Node单线程的优势</h2><p>首先我们先明确一点，node是单线程并不是单进程，现如今大多数CPU为多核，为了充分利用资源，node提供了<code>child_process</code>和<code>cluster</code>模块实现多进程的管理。</p>
+<p>node在<strong>高并发</strong>的场景下拥有优势，因为它的工作模式是<strong>非阻塞IO模型</strong>，而java，apache这种是<strong>阻塞IO模型</strong>。</p>
+<p><strong>什么是高并发？</strong></p>
+<p>高并发是指在同一个时间点，大量用户访问同一API接口或url地址，在高并发场景下必须保证系统能够同时并行处理很多请求。</p>
+<p>举个例子，就相当于开一家餐厅，高并发就相当于在一段时间内有很多人进来吃饭，为了运作正常需要为每个客人及时提供服务。</p>
+<p><strong>如何解决？</strong></p>
+<ul>
+<li>增加机器数，负载均衡（开分店）</li>
+<li>增加每台机器的CPU数量（雇佣更多的厨师）</li>
+</ul>
+<p><strong>后台任务</strong></p>
+<p>后台任务一般分为两种：</p>
+<ul>
+<li>CPU任务：压缩、解压、加密、解密</li>
+<li>I/O任务：文件操作、网络操作、数据库操作</li>
+</ul>
+<p>模拟成餐厅的话，CPU任务就相当于服务员任务，而I/O任务相当于厨师任务。</p>
+<p><strong>阻塞I/O与非阻塞I/O</strong></p>
+<p>阻塞I/O的工作模式是对于每一个请求，都开启一个线程处理，阻塞时进程分配的CPU资源在等待，当I/O操作结束再结束掉该线程。相当于每来一位顾客，就为他配一名服务员。但是这样有个缺点，在处理I/O请求的时候线程是阻塞的，CPU资源被占用，也就是服务员点完菜就坐那玩手机啥也不干了，等厨子做好了菜再叫服务员端上去。</p>
+<p>而非阻塞I/O的工作模式为对每个请求都进行处理，以回调的方式进行通知。单线程只是针对于主线程，I/O操作底层是多线程调度。相当于只雇佣一名服务员，每接待一位顾客就通知后台的那些厨子，接待完再接待下一个。CPU始终在进行工作，提高了利用率。</p>
+<p>因此<strong>阻塞I/O模型</strong>适用于<strong>CPU任务密集</strong>的场景，<strong>非阻塞I/O模型</strong>适用于<strong>I/O任务密集</strong>的场景。</p>
+<h2 id="EventLoop"><a href="#EventLoop" class="headerlink" title="EventLoop"></a>EventLoop</h2><p>事件循环是计算机的一种运行机制，JavaScript语言采用的正是这种机制，而浏览器环境下的EventLoop和Node环境下的又有所区别。</p>
+<p>在js中，异步任务分为两种，宏任务和微任务，它们分别存放在不同的队列里面。</p>
+<ul>
+<li>常见的宏任务有：script代码的加载，定时器，I/O操作，UI交互事件</li>
+<li>常见的微任务有：Promise callbacks，process.nextTick，MutationObsever</li>
+</ul>
+<p>我们先来看一段代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">2</span>);</span><br><span class="line">    <span class="keyword">const</span> timer1 = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="number">3</span>);</span><br><span class="line">        resolve()</span><br><span class="line">    &#125;, <span class="number">0</span>);</span><br><span class="line">&#125;).then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">4</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> timer2 = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">5</span>);</span><br><span class="line">&#125;, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">Promise</span>.resolve().then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">6</span>);</span><br><span class="line">&#125;).then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="number">7</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="number">8</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>浏览器环境</strong></p>
+<p>在浏览器环境上面这段代码在浏览器中的输出结果为：12867345</p>
+<p>为什么设定定时器在0s后触发5却晚于7输出？为什么2在Promise里面却紧随着1输出？</p>
+<p>在浏览器中EventLoop的执行流程为：</p>
+<ol>
+<li>检查宏任务队列是否有已完成的宏任务，然后在宏任务队列中取出一个压入执行栈进行执行</li>
+<li>检查微任务队列，是否有微任务，如果有则按照<strong>先入先出</strong>的方式一个个进行执行</li>
+<li>再次检查微任务队列，看看是否有新入队的微任务，如果有则返回第2步</li>
+<li>执行渲染操作，更新界面</li>
+<li>检查是否有web worker任务，如果有则进行处理</li>
+<li>返回第1步</li>
+</ol>
+<p>现在来分析上面那段代码的执行流程：</p>
+<ol>
+<li><p>执行script代码的加载（执行宏任务）</p>
+</li>
+<li><p>输出1</p>
+</li>
+<li><p>遇到Promise，Promise接受的回调会同步执行，输出2</p>
+</li>
+<li><p>遇到定时器timer1，将其添加到宏任务队列</p>
+</li>
+<li><p>遇到定时器timer2，将其添加到宏任务队列</p>
+</li>
+<li><p>遇到Promise.then，将其添加到微任务队列</p>
+</li>
+<li><p>输出8</p>
+<p>此时宏任务script代码的加载完成，宏任务队列与微任务队列如下：</p>
+<table>
+<thead>
+<tr>
+<th align="left">宏任务</th>
+<th align="left">微任务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">timer1的回调</td>
+<td align="left">输出6的回调</td>
+</tr>
+<tr>
+<td align="left">timer2的回调</td>
+<td align="left"></td>
+</tr>
+</tbody></table>
+</li>
+<li><p>清空微任务队列，输出6，并将输出7的回调加入微任务队列</p>
+</li>
+<li><p>检查是否有新的微任务入队，发现有，输出7</p>
+<p>此时微任务队列清空，且没有新的微任务入队，于是执行宏任务</p>
+</li>
+<li><p>取出到期的定时器timer1的回调，执行，输出3并将输出4的回调加入微任务队列</p>
+<p>此时宏任务与微任务队列如下：</p>
+<table>
+<thead>
+<tr>
+<th align="left">宏任务</th>
+<th align="left">微任务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">timer2的回调</td>
+<td align="left">输出4的回调</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>清空微任务队列，输出4</p>
+<p>此时微任务队列清空，且没有新的微任务入队，于是执行宏任务</p>
+</li>
+<li><p>输出5</p>
+</li>
+<li><p>执行完成</p>
+</li>
+</ol>
+<p><strong>node环境</strong></p>
+<p>在node环境中分为两种情况：</p>
+<ul>
+<li>node10及以前的版本输出结果为：12867354</li>
+<li>node11及以后的版本输出结果为：12867345</li>
+</ul>
+<p>为什么会产生差异以及node中的EventLoop是如何实现的？</p>
+<p>在node中事件循环分为6个阶段：</p>
+<ul>
+<li>timer阶段：这个阶段执行timer（setTimeout、setInterval）的回调</li>
+<li>I/O callbacks 阶段：这个阶段执行一些系统操作的回调</li>
+<li>idle, prepare 阶段：仅node内部使用</li>
+<li>poll 阶段：获取新的I/O事件, 适当的条件下node将阻塞在这里</li>
+<li>check 阶段：执行 setImmediate() 的回调</li>
+<li>close callbacks 阶段：执行 socket 的 close 事件回调</li>
+</ul>
+<p><strong>poll阶段</strong></p>
+<p>poll阶段是非常重要的一个阶段，它主要有两个作用：</p>
+<ul>
+<li>处理poll队列的事件</li>
+<li>有已超时的timer，执行它的回调函数</li>
+</ul>
+<p>事件循环将同步执行 poll 队列里的回调，直到队列为空或执行的回调达到系统上限。如果没有其他阶段的事要处理，事件循环将会一直阻塞在这个阶段，等待新的 I/O 事件加入 poll 队列中。</p>
+<p>如果其他阶段出现了事件：</p>
+<ul>
+<li>当check队列已经被<code>setImmediate</code>设定了回调，事件循环将结束 poll 阶段往下进入 check 阶段来执行 check 队列</li>
+<li>如果 timers 队列有到时的 <code>setTimeout</code> 或者 <code>setInterval</code> 回调，则事件循环将往上绕回 timers 阶段，并执行 timer 队列</li>
+</ul>
+<p><strong>微任务和宏任务</strong></p>
+<p>Node 中只有 <code>process.nextTick</code> 和 <code>Promise callbacks</code> 两个微任务，它们都有各自的队列，<strong>不属于事件循环的一部分</strong>。</p>
+<p>不管在什么地方调用，它们总是在各个阶段之间执行，上一阶段完成，进入下一阶段前，会清空 nextTick 和 promsie 队列，并且nextTick 要比 promise callback优先执行。</p>
+<p>在node版本差异中，node11及以后的版本一旦执行一个阶段里的一个宏任务就立刻执行微任务队列，跟浏览器端运行一致。</p>
+<p>而node10及以前的版本会把所有已到期的定时器执行完再去执行微任务队列。</p>
+<p><strong>requestAnimationFrame是宏任务还是微任务？</strong></p>
+<p>我们首先要知道浏览器的一帧到底干了什么。</p>
+<p>浏览器的每一帧流程为：</p>
+<ol>
+<li>当<strong>Event loop</strong>执行完微任务后，会判断document是否需要更新</li>
+<li>然后判断是否有<strong>resize</strong>或<strong>scroll</strong>，有的话去触发事件</li>
+<li>判断是否触发了<strong>media query</strong></li>
+<li>更新动画并发送事件</li>
+<li>判断是否有全屏操作事件</li>
+<li>执行<strong>requestAnimationFrame</strong>回调</li>
+<li>执行<strong>IntersectionObserver</strong>回调（该方法用于观测一个元素是否可见）</li>
+<li>更新界面</li>
+<li>如果一帧中有空闲的时间，就去执行<strong>requestIdleCallback</strong></li>
+</ol>
+<p>所以<code>requestAnimationFrame</code>既不是宏任务也不是微任务，并且刷新频率也不等于浏览器帧数，通过判断一秒钟内<code>requestAnimationFrame</code>的调用次数可以得知浏览器动画的卡顿情况。</p>
+<h2 id="JS异步任务应用"><a href="#JS异步任务应用" class="headerlink" title="JS异步任务应用"></a>JS异步任务应用</h2><p>现在我们对JS中的异步任务有了一定了解，是时候进行应用一下了。</p>
+<p>新建一队的异步任务：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sleep</span>(<span class="params">wait</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">            resolve(wait);</span><br><span class="line">        &#125;, wait);</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> tasks = [];</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">    tasks.push(<span class="function">() =&gt;</span> sleep(i * <span class="number">1000</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>串行控制</strong></p>
+<p>其实这个串行控制有点像webpack的Tapable，如果阅读过webpack源码会很容易理解。</p>
+<p>如果要实现串行，并且让上一个异步任务的结果作为下一个的参数，可以使用reduce实现：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> task = tasks.reduce(<span class="function">(<span class="params">pre, current</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> pre.then(<span class="function"><span class="params">res</span> =&gt;</span> current(res));</span><br><span class="line">&#125;, <span class="built_in">Promise</span>.resolve())</span><br><span class="line">task.then(<span class="function"><span class="params">res</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(res); &#125;);</span><br></pre></td></tr></table></figure>
+
+<p>考虑中途是否有任务会添加进来：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SerialAsyncTaskPool</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">tasks, cb</span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.tasks = tasks || [];</span><br><span class="line">        <span class="built_in">this</span>.cb = cb;	<span class="comment">// 每个任务执行完成后的回调</span></span><br><span class="line">        <span class="built_in">this</span>.running = <span class="literal">false</span>;</span><br><span class="line">        <span class="built_in">this</span>.preRes;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">pushTask</span>(<span class="params">tasks</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">Array</span>.isArray(tasks)) &#123;</span><br><span class="line">            <span class="comment">// 如果不是数组则包装成数组</span></span><br><span class="line">            tasks = [tasks];</span><br><span class="line">        &#125;</span><br><span class="line">        tasks.forEach(<span class="function"><span class="params">task</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.tasks.push(task);</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">this</span>.running) &#123;</span><br><span class="line">            <span class="comment">// 当前任务池不在执行，则让他执行</span></span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">this</span>.preRes !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">            	<span class="built_in">this</span>.run(<span class="built_in">this</span>.preRes);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            	<span class="built_in">this</span>.run();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">run</span>(<span class="params">...args</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.next(resolve, ...args);</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">next</span>(<span class="params">resolve, ...args</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.tasks.length) &#123;</span><br><span class="line">            <span class="built_in">this</span>.running = <span class="literal">true</span>;</span><br><span class="line">            <span class="keyword">const</span> currentTask = <span class="built_in">this</span>.tasks.shift();</span><br><span class="line">            currentTask(...args).then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">                <span class="built_in">this</span>.preRes = res;</span><br><span class="line">                <span class="built_in">this</span>.cb &amp;&amp; <span class="built_in">this</span>.cb(res);</span><br><span class="line">                <span class="built_in">this</span>.next(resolve, res);</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.running = <span class="literal">false</span>;</span><br><span class="line">            resolve(<span class="built_in">this</span>.preRes);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>并行控制</strong></p>
+<p>这里考虑两种情况，一种是让运行的任务数量始终维持在一个阙值以下，还有一种是每次从任务池中取出固定数量的任务，当上次取出的任务都完成在取下一次的任务并执行。</p>
+<p>让运行的任务数量始终维持在一个阙值以下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ParallelAsyncTaskPool</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">tasks, pool = <span class="number">3</span>, cb</span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.tasks = tasks || [];</span><br><span class="line">        <span class="built_in">this</span>.pool = pool;</span><br><span class="line">        <span class="built_in">this</span>.running = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">this</span>.cb = cb;</span><br><span class="line">        <span class="built_in">this</span>.isRunning = <span class="literal">false</span>;</span><br><span class="line">        <span class="built_in">this</span>.resolve;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">pushTask</span>(<span class="params">tasks</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">Array</span>.isArray(tasks)) &#123;</span><br><span class="line">            tasks = [tasks];</span><br><span class="line">        &#125;</span><br><span class="line">        tasks.forEach(<span class="function"><span class="params">task</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.tasks.push(task);</span><br><span class="line">            <span class="built_in">this</span>.isRunning &amp;&amp; <span class="built_in">this</span>.next();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">run</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.resolve = resolve;</span><br><span class="line">            <span class="built_in">this</span>.isRunning = <span class="literal">true</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="built_in">this</span>.tasks.length; i++) &#123;</span><br><span class="line">                <span class="built_in">this</span>.next();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">next</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.tasks.length &amp;&amp; <span class="built_in">this</span>.running &lt; <span class="built_in">this</span>.pool) &#123;</span><br><span class="line">            <span class="built_in">this</span>.running++;</span><br><span class="line">            <span class="keyword">const</span> currentTask = <span class="built_in">this</span>.tasks.shift();</span><br><span class="line">            currentTask().then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">                <span class="built_in">this</span>.cb &amp;&amp; <span class="built_in">this</span>.cb(res);</span><br><span class="line">                <span class="built_in">console</span>.log(res);</span><br><span class="line">                <span class="built_in">this</span>.running--;</span><br><span class="line">                <span class="built_in">this</span>.next();</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">this</span>.tasks.length &amp;&amp; !<span class="built_in">this</span>.running) &#123;</span><br><span class="line">            <span class="built_in">this</span>.isRuning = <span class="literal">false</span>;</span><br><span class="line">            <span class="built_in">this</span>.resolve()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>批量并行：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ParallelGroupAsyncTaskPool</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params">tasks, pool = <span class="number">3</span>, cb</span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.tasks = tasks || [];</span><br><span class="line">        <span class="built_in">this</span>.pool = pool;</span><br><span class="line">        <span class="built_in">this</span>.cb = cb;</span><br><span class="line">        <span class="built_in">this</span>.complete = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">pushTask</span>(<span class="params">tasks</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">Array</span>.isArray(tasks)) &#123;</span><br><span class="line">            tasks = [tasks];</span><br><span class="line">        &#125;</span><br><span class="line">        tasks.forEach(<span class="function"><span class="params">task</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.tasks.push(task);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">run</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.next(resolve);</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="title">next</span>(<span class="params">resolve</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">this</span>.tasks.length &amp;&amp; !<span class="built_in">this</span>.runing) &#123;</span><br><span class="line">            <span class="keyword">const</span> runingTasks = <span class="built_in">this</span>.tasks.splice(<span class="number">0</span>, <span class="built_in">this</span>.pool);</span><br><span class="line">            <span class="built_in">Promise</span>.all(runingTasks.map(<span class="function"><span class="params">task</span> =&gt;</span> task())).then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">                <span class="built_in">this</span>.cb &amp;&amp; <span class="built_in">this</span>.cb();</span><br><span class="line">                <span class="built_in">this</span>.next(resolve);</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">this</span>.tasks.length) &#123;</span><br><span class="line">            resolve();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JS/" rel="tag"># JS</a>
+          
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/04/15/%E6%96%90%E6%B3%A2%E9%82%A3%E5%A5%91%E6%95%B0%E5%88%97/" rel="next" title="斐波那契数列">
+                <i class="fa fa-chevron-left"></i> 斐波那契数列
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/07/25/%E4%BD%BF%E7%94%A8canvas%E7%94%BB%E5%87%BA%E6%98%9F%E7%A9%BA%E5%9B%BE/" rel="prev" title="使用canvas画出星空图">
+                使用canvas画出星空图 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%7C%7Carchive">
+              
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%AE%A4%E7%9F%A5"><span class="nav-number">1.</span> <span class="nav-text">进程和线程的认知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JS%E5%8D%95%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">JS单线程的应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Node%E5%8D%95%E7%BA%BF%E7%A8%8B%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">3.</span> <span class="nav-text">Node单线程的优势</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EventLoop"><span class="nav-number">4.</span> <span class="nav-text">EventLoop</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JS%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%BA%94%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">JS异步任务应用</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Fallcoin</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
